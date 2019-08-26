@@ -999,6 +999,13 @@ void mem_reorder_primary5(int T, mem_alnreg_v *a)
 	}
 }
 
+int extractBSZCount(bseq1_t* s) {
+	int count = 0;
+	sscanf(s->name, "BIOSEQZIP|ID:%*d|CN:%d", &count);
+
+	return count;
+}
+
 // TODO (future plan): group hits into a uint64_t[] array. This will be cleaner and more flexible
 void mem_reg2sam(const mem_opt_t *opt, const bntseq_t *bns, const uint8_t *pac, bseq1_t *s, mem_alnreg_v *a, int extra_flag, const mem_aln_t *m)
 {
@@ -1034,10 +1041,18 @@ void mem_reg2sam(const mem_opt_t *opt, const bntseq_t *bns, const uint8_t *pac, 
 		mem_aln_t t;
 		t = mem_reg2aln(opt, bns, pac, s->l_seq, s->seq, 0);
 		t.flag |= extra_flag;
-		mem_aln2sam(opt, bns, &str, s, 1, &t, 0, m);
+
+		int z = 0;
+		for (z = 0; z < extractBSZCount(s); z++) {
+		        mem_aln2sam(opt, bns, &str, s, 1, &t, 0, m);
+		}
 	} else {
-		for (k = 0; k < aa.n; ++k)
-			mem_aln2sam(opt, bns, &str, s, aa.n, aa.a, k, m);
+		for (k = 0; k < aa.n; ++k) {
+			int z = 0;
+			for (z = 0; z < extractBSZCount(s); z++) {
+				mem_aln2sam(opt, bns, &str, s, aa.n, aa.a, k, m);
+			}
+		}
 		for (k = 0; k < aa.n; ++k) free(aa.a[k].cigar);
 		free(aa.a);
 	}
